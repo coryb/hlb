@@ -1,0 +1,30 @@
+import test from fs {
+	copy frontendBuild "/frontend" "/frontend"
+	entrypoint "/frontend"
+	label "moby.buildkit.frontend.caps" "moby.buildkit.frontend.inputs,moby.buildkit.frontend.subrequests"
+	mkfile "module.hlb" 0o644 <<-EOM
+		export hello
+		string hello(name string)
+	EOM
+}
+
+fs _build_frontend() {
+	image "golang"
+	run "go build -ldflags '-w -s' -o /out/frontend ./cmd/hello-frontend" with option {
+		dir "/src"
+		mount fs {
+			local "." with option {
+				includePatterns "**/*.go" "go.mod" "go.sum"
+			}
+		} "/src" with readonly
+		mount scratch "/out" as frontendBuild
+		mount scratch "/root/.cache/go-build" with cache("hlb/go-build", "private")
+		mount scratch "/go/pkg/mod" with cache("hlb/go-mod", "private")
+		env "CGO_ENABLED" "0"
+	}
+}
+
+fs default() {
+	mkfile "output.txt" 0o644 test.hello("hlb")
+	download "."
+}
