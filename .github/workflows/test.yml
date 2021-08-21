@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, race ]
   pull_request:
     branches: [ master ]
 
@@ -38,12 +38,13 @@ jobs:
 
     - name: Compile
       run: |
+        go build -race -o build/hlb-race ./cmd/hlb
         go build -o build/hlb ./cmd/hlb
         go build -o build/docgen ./cmd/docgen
         go build -o build/builtingen ./cmd/builtingen
 
     - name: Go Tests
-      run: go test -v ./...
+      run: go test -race -v ./...
 
     - name: Start BuildkitD
       if: github.repository != 'openllb/hlb'
@@ -55,7 +56,7 @@ jobs:
       run: while true; do lineCount=$(docker exec buildkitd buildctl debug workers | wc -l); if [ $lineCount -gt 1 ]; then break; fi; sleep 1; done
 
     - name: GoLint
-      run: ./build/hlb run -t lint
+      run: ./build/hlb-race run -t lint
 
     - name: Ensure generated files
       run: |
@@ -72,4 +73,4 @@ jobs:
         fi
 
     - name: Crosscompile
-      run: ./build/hlb run
+      run: ./build/hlb-race run
