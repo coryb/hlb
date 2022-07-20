@@ -99,9 +99,10 @@ func (fb *FileBuffer) OnDisk() bool {
 }
 
 func (fb *FileBuffer) SourceMap() *llb.SourceMap {
-	fb.mu.Lock()
-	defer fb.mu.Unlock()
-	return llb.NewSourceMap(nil, fb.filename, fb.buf.Bytes())
+	return &llb.SourceMap{}
+	// fb.mu.Lock()
+	// defer fb.mu.Unlock()
+	// return llb.NewSourceMap(nil, fb.filename, fb.buf.Bytes())
 }
 
 func (fb *FileBuffer) Len() int {
