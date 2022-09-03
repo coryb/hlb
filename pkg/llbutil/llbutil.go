@@ -217,7 +217,7 @@ func WithIncludePatterns(includePatterns []string) IncludePatterns {
 }
 
 func (ip IncludePatterns) SetLocalOption(li *llb.LocalInfo) {
-	llb.IncludePatterns(ip).SetLocalOption(li)
+	llb.FollowPaths(ip).SetLocalOption(li)
 }
 
 func (ip IncludePatterns) SetCopyOption(ci *llb.CopyInfo) {
