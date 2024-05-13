@@ -12,9 +12,9 @@ require (
 	github.com/creachadair/jrpc2 v0.26.1
 	github.com/creack/pty v1.1.18
 	github.com/docker/buildx v0.11.1-0.20231023141442-390eedc50ba8
-	github.com/docker/cli v26.1.0+incompatible
+	github.com/docker/cli v25.0.3+incompatible
 	github.com/docker/distribution v2.8.2+incompatible
-	github.com/docker/docker v26.1.0+incompatible
+	github.com/docker/docker v25.0.3+incompatible
 	github.com/google/go-dap v0.6.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lithammer/dedent v1.1.0
@@ -56,7 +56,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.26.7 // indirect
 	github.com/aws/smithy-go v1.19.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chzyer/test v1.0.0 // indirect
 	github.com/containerd/continuity v0.4.3 // indirect
@@ -116,13 +115,9 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.46.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.46.1 // indirect
 	go.opentelemetry.io/otel v1.21.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.42.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.42.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.21.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.21.0 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.21.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	golang.org/x/mod v0.13.0 // indirect
