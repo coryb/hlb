@@ -769,6 +769,7 @@ func (dp DockerPush) Call(ctx context.Context, cln *client.Client, val Value, op
 	default:
 		exportFS.Image.OS = defaultPlat.OS
 	}
+
 	switch {
 	case exportFS.Image.Architecture != "": // all good
 	case exportFS.Platform.Architecture != "":
@@ -966,6 +967,23 @@ func (dl DockerLoad) Call(ctx context.Context, cln *client.Client, val Value, op
 	exportFS, err := val.Filesystem()
 	if err != nil {
 		return nil, err
+	}
+
+	defaultPlat := DefaultPlatform(ctx)
+	switch {
+	case exportFS.Image.OS != "": // all good
+	case exportFS.Platform.OS != "":
+		exportFS.Image.OS = exportFS.Platform.OS
+	default:
+		exportFS.Image.OS = defaultPlat.OS
+	}
+
+	switch {
+	case exportFS.Image.Architecture != "": // all good
+	case exportFS.Platform.Architecture != "":
+		exportFS.Image.Architecture = exportFS.Platform.Architecture
+	default:
+		exportFS.Image.Architecture = defaultPlat.Architecture
 	}
 
 	for _, opt := range opts {
