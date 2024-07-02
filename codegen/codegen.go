@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/lithammer/dedent"
-	"github.com/moby/buildkit/client"
 	"github.com/openllb/hlb/checker"
 	"github.com/openllb/hlb/diagnostic"
 	"github.com/openllb/hlb/errdefs"
@@ -23,13 +22,13 @@ import (
 )
 
 type CodeGen struct {
-	cln      *client.Client
+	cln      solver.Client
 	resolver Resolver
 	dbgr     *debugger
 	g        singleflight.Group
 }
 
-func New(cln *client.Client, resolver Resolver) *CodeGen {
+func New(cln solver.Client, resolver Resolver) *CodeGen {
 	return &CodeGen{
 		cln:      cln,
 		resolver: resolver,

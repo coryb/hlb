@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"github.com/docker/buildx/util/progress"
-	"github.com/moby/buildkit/client"
 	"github.com/moby/buildkit/client/llb"
 	"github.com/openllb/hlb/errdefs"
 	"github.com/openllb/hlb/local"
@@ -33,7 +32,7 @@ var (
 
 // ParseModuleURI returns an ast.Module based on the URI provided. The module
 // may live on the local filesystem or remote depending on the scheme.
-func ParseModuleURI(ctx context.Context, cln *client.Client, dir ast.Directory, uri string) (*ast.Module, error) {
+func ParseModuleURI(ctx context.Context, cln solver.Client, dir ast.Directory, uri string) (*ast.Module, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return nil, err
@@ -49,7 +48,7 @@ func ParseModuleURI(ctx context.Context, cln *client.Client, dir ast.Directory, 
 	}
 }
 
-func parseModuleFileURI(ctx context.Context, cln *client.Client, dir ast.Directory, u *url.URL) (*ast.Module, error) {
+func parseModuleFileURI(ctx context.Context, _ solver.Client, dir ast.Directory, u *url.URL) (*ast.Module, error) {
 	filename, err := parser.ResolvePath(ModuleDir(ctx), u.Host+u.Path)
 	if err != nil {
 		return nil, err
@@ -74,7 +73,7 @@ func parseModuleFileURI(ctx context.Context, cln *client.Client, dir ast.Directo
 	return mod, nil
 }
 
-func parseModuleGitURI(ctx context.Context, cln *client.Client, uri string) (*ast.Module, error) {
+func parseModuleGitURI(ctx context.Context, cln solver.Client, uri string) (*ast.Module, error) {
 	u, err := gitscheme.Parse(uri)
 	if err != nil {
 		return nil, err
@@ -154,7 +153,7 @@ func parseModuleGitURI(ctx context.Context, cln *client.Client, uri string) (*as
 	}
 
 	var pw progress.Writer
-	mw := MultiWriter(ctx)
+	mw := solver.LoadMultiWriter(ctx)
 	if mw != nil {
 		pw = mw.WithPrefix("module "+uri, true)
 	}

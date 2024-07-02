@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/docker/buildx/util/progress"
-	"github.com/moby/buildkit/client"
 	"github.com/moby/buildkit/client/llb"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/openllb/hlb/checker"
@@ -31,7 +30,7 @@ var (
 
 // NewResolver returns a resolver based on whether the modules path exists in
 // the current working directory.
-func NewResolver(cln *client.Client) (codegen.Resolver, error) {
+func NewResolver(cln solver.Client) (codegen.Resolver, error) {
 	root, exist, err := modulesPathExist()
 	if err != nil {
 		return nil, err
@@ -96,7 +95,7 @@ func resolveLocal(ctx context.Context, modulePath string, fs codegen.Filesystem)
 }
 
 type remoteResolver struct {
-	cln        *client.Client
+	cln        solver.Client
 	modulePath string
 }
 
@@ -112,7 +111,7 @@ func (r *remoteResolver) Resolve(ctx context.Context, id *ast.ImportDecl, fs cod
 	}
 
 	var pw progress.Writer
-	mw := codegen.MultiWriter(ctx)
+	mw := solver.LoadMultiWriter(ctx)
 	if mw != nil {
 		pw = mw.WithPrefix(fmt.Sprintf("import %s", id.Name), true)
 	}
@@ -122,7 +121,7 @@ func (r *remoteResolver) Resolve(ctx context.Context, id *ast.ImportDecl, fs cod
 }
 
 type tidyResolver struct {
-	cln    *client.Client
+	cln    solver.Client
 	remote *remoteResolver
 }
 
@@ -147,7 +146,7 @@ func (r *tidyResolver) Resolve(ctx context.Context, id *ast.ImportDecl, fs codeg
 type targetResolver struct {
 	filename string
 	targets  []string
-	cln      *client.Client
+	cln      solver.Client
 	remote   *remoteResolver
 }
 
@@ -210,7 +209,7 @@ type resolveGraphInfo struct {
 }
 
 // ResolveGraph traverses the import graph of a given module.
-func ResolveGraph(ctx context.Context, cln *client.Client, resolver codegen.Resolver, mod *ast.Module, visitor Visitor) error {
+func ResolveGraph(ctx context.Context, cln solver.Client, resolver codegen.Resolver, mod *ast.Module, visitor Visitor) error {
 	info := &resolveGraphInfo{
 		cg:      codegen.New(cln, resolver),
 		visitor: visitor,

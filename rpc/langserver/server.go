@@ -14,7 +14,6 @@ import (
 	"github.com/creachadair/jrpc2"
 	"github.com/creachadair/jrpc2/channel"
 	"github.com/creachadair/jrpc2/handler"
-	"github.com/moby/buildkit/client"
 	"github.com/openllb/hlb/builtin"
 	"github.com/openllb/hlb/checker"
 	"github.com/openllb/hlb/codegen"
@@ -22,11 +21,12 @@ import (
 	"github.com/openllb/hlb/module"
 	"github.com/openllb/hlb/parser"
 	"github.com/openllb/hlb/parser/ast"
+	"github.com/openllb/hlb/solver"
 	lsp "github.com/sourcegraph/go-lsp"
 )
 
 type LangServer struct {
-	cln      *client.Client
+	cln      solver.Client
 	resolver codegen.Resolver
 
 	server *jrpc2.Server
@@ -46,7 +46,7 @@ const (
 	SemanticHighlightingCapability
 )
 
-func NewServer(ctx context.Context, cln *client.Client) (*LangServer, error) {
+func NewServer(ctx context.Context, cln solver.Client) (*LangServer, error) {
 	resolver, err := module.NewResolver(cln)
 	if err != nil {
 		return nil, err

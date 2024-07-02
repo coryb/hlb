@@ -114,15 +114,6 @@ func Arg(ctx context.Context, n int) ast.Node {
 	return arg
 }
 
-func WithMultiWriter(ctx context.Context, mw *solver.MultiWriter) context.Context {
-	return context.WithValue(ctx, multiwriterKey{}, mw)
-}
-
-func MultiWriter(ctx context.Context) *solver.MultiWriter {
-	mw, _ := ctx.Value(multiwriterKey{}).(*solver.MultiWriter)
-	return mw
-}
-
 func WithProgress(ctx context.Context, p solver.Progress) context.Context {
 	return context.WithValue(ctx, progressKey{}, p)
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/moby/buildkit/client"
 	"github.com/openllb/hlb/builtin"
 	"github.com/openllb/hlb/checker"
 	"github.com/openllb/hlb/codegen"
@@ -21,7 +20,7 @@ import (
 const defaultMaxConcurrency = 20
 
 // WithDefaultContext adds common context values to the context.
-func WithDefaultContext(ctx context.Context, cln *client.Client) context.Context {
+func WithDefaultContext(ctx context.Context, cln solver.Client) context.Context {
 	ctx = filebuffer.WithBuffers(ctx, builtin.Buffers())
 	ctx = ast.WithModules(ctx, builtin.Modules())
 	if cln != nil {
@@ -31,7 +30,7 @@ func WithDefaultContext(ctx context.Context, cln *client.Client) context.Context
 }
 
 // Compile compiles targets in a module and returns a solver.Request.
-func Compile(ctx context.Context, cln *client.Client, w io.Writer, mod *ast.Module, targets []codegen.Target) (solver.Request, error) {
+func Compile(ctx context.Context, cln solver.Client, w io.Writer, mod *ast.Module, targets []codegen.Target) (solver.Request, error) {
 	err := checker.SemanticPass(mod)
 	if err != nil {
 		return nil, err

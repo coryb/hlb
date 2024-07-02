@@ -58,13 +58,13 @@ func commitHistory(img *solver.ImageSpec, empty bool, format string, a ...interf
 
 type Scratch struct{}
 
-func (s Scratch) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (s Scratch) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	return NewValue(ctx, llb.Scratch())
 }
 
 type Image struct{}
 
-func (i Image) Call(ctx context.Context, cln *client.Client, val Value, opts Option, ref string) (Value, error) {
+func (i Image) Call(ctx context.Context, cln solver.Client, val Value, opts Option, ref string) (Value, error) {
 	var imageOpts []llb.ImageOption
 	platform := DefaultPlatform(ctx)
 	for _, opt := range opts {
@@ -132,7 +132,7 @@ func (i Image) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type HTTP struct{}
 
-func (h HTTP) Call(ctx context.Context, cln *client.Client, val Value, opts Option, url string) (Value, error) {
+func (h HTTP) Call(ctx context.Context, cln solver.Client, val Value, opts Option, url string) (Value, error) {
 	var httpOpts []llb.HTTPOption
 	for _, opt := range opts {
 		switch o := opt.(type) {
@@ -149,7 +149,7 @@ func (h HTTP) Call(ctx context.Context, cln *client.Client, val Value, opts Opti
 
 type Git struct{}
 
-func (g Git) Call(ctx context.Context, cln *client.Client, val Value, opts Option, remote, ref string) (Value, error) {
+func (g Git) Call(ctx context.Context, cln solver.Client, val Value, opts Option, remote, ref string) (Value, error) {
 	var gitOpts []llb.GitOption
 	for _, opt := range opts {
 		switch o := opt.(type) {
@@ -166,7 +166,7 @@ func (g Git) Call(ctx context.Context, cln *client.Client, val Value, opts Optio
 
 type Local struct{}
 
-func (l Local) Call(ctx context.Context, cln *client.Client, val Value, opts Option, localPath string) (Value, error) {
+func (l Local) Call(ctx context.Context, cln solver.Client, val Value, opts Option, localPath string) (Value, error) {
 	localPath, err := parser.ResolvePath(ModuleDir(ctx), localPath)
 	if err != nil {
 		return nil, err
@@ -282,7 +282,7 @@ func (l Local) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type Frontend struct{}
 
-func (f Frontend) Call(ctx context.Context, cln *client.Client, val Value, opts Option, source string) (Value, error) {
+func (f Frontend) Call(ctx context.Context, cln solver.Client, val Value, opts Option, source string) (Value, error) {
 	named, err := reference.ParseNormalizedNamed(source)
 	if err != nil {
 		return nil, errdefs.WithInvalidImageRef(err, Arg(ctx, 0), source)
@@ -312,66 +312,42 @@ func (f Frontend) Call(ctx context.Context, cln *client.Client, val Value, opts 
 		}
 	}
 
-	s, err := llbutil.NewSession(ctx, sessionOpts...)
-	if err != nil {
-		return nil, err
-	}
-
-	g, ctx := errgroup.WithContext(ctx)
-
 	fs, err := ZeroValue(ctx).Filesystem()
 	if err != nil {
 		return nil, err
 	}
 
-	g.Go(func() error {
-		return s.Run(ctx, cln.Dialer())
-	})
-
-	g.Go(func() error {
-		defer s.Close()
-		var pw progress.Writer
-
-		mw := MultiWriter(ctx)
-		if mw != nil {
-			pw = mw.WithPrefix("", false)
+	if err := solver.Build(ctx, cln, sessionOpts, func(ctx context.Context, c gateway.Client) (res *gateway.Result, err error) {
+		res, err = c.Solve(ctx, req)
+		if err != nil {
+			return
 		}
 
-		return solver.Build(ctx, cln, s, pw, func(ctx context.Context, c gateway.Client) (res *gateway.Result, err error) {
-			res, err = c.Solve(ctx, req)
-			if err != nil {
-				return
-			}
-
-			ref, err := res.SingleRef()
-			if err != nil {
-				return
-			}
-
-			if ref == nil {
-				fs.State = llb.Scratch()
-			} else {
-				fs.State, err = ref.ToState()
-				if err != nil {
-					return
-				}
-				fs.SessionOpts = sessionOpts
-			}
-
-			imageSpec, ok := res.Metadata[llbutil.KeyContainerImageConfig]
-			if ok {
-				err = json.Unmarshal(imageSpec, fs.Image)
-				if err != nil {
-					return
-				}
-			}
-
+		ref, err := res.SingleRef()
+		if err != nil {
 			return
-		}, solveOpts...)
-	})
+		}
 
-	err = g.Wait()
-	if err != nil {
+		if ref == nil {
+			fs.State = llb.Scratch()
+		} else {
+			fs.State, err = ref.ToState()
+			if err != nil {
+				return
+			}
+			fs.SessionOpts = sessionOpts
+		}
+
+		imageSpec, ok := res.Metadata[llbutil.KeyContainerImageConfig]
+		if ok {
+			err = json.Unmarshal(imageSpec, fs.Image)
+			if err != nil {
+				return
+			}
+		}
+
+		return
+	}, solveOpts...); err != nil {
 		return nil, err
 	}
 
@@ -380,7 +356,7 @@ func (f Frontend) Call(ctx context.Context, cln *client.Client, val Value, opts 
 
 type Env struct{}
 
-func (e Env) Call(ctx context.Context, cln *client.Client, val Value, opts Option, key, value string) (Value, error) {
+func (e Env) Call(ctx context.Context, cln solver.Client, val Value, opts Option, key, value string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -393,7 +369,7 @@ func (e Env) Call(ctx context.Context, cln *client.Client, val Value, opts Optio
 
 type Dir struct{}
 
-func (d Dir) Call(ctx context.Context, cln *client.Client, val Value, opts Option, wd string) (Value, error) {
+func (d Dir) Call(ctx context.Context, cln solver.Client, val Value, opts Option, wd string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -411,7 +387,7 @@ func (d Dir) Call(ctx context.Context, cln *client.Client, val Value, opts Optio
 
 type User struct{}
 
-func (u User) Call(ctx context.Context, cln *client.Client, val Value, opts Option, name string) (Value, error) {
+func (u User) Call(ctx context.Context, cln solver.Client, val Value, opts Option, name string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -425,7 +401,7 @@ func (u User) Call(ctx context.Context, cln *client.Client, val Value, opts Opti
 
 type Run struct{}
 
-func (r Run) Call(ctx context.Context, cln *client.Client, val Value, opts Option, args ...string) (Value, error) {
+func (r Run) Call(ctx context.Context, cln solver.Client, val Value, opts Option, args ...string) (Value, error) {
 	var (
 		runOpts     []llb.RunOption
 		solveOpts   []solver.SolveOption
@@ -498,13 +474,13 @@ func (r Run) Call(ctx context.Context, cln *client.Client, val Value, opts Optio
 
 type SetBreakpoint struct{}
 
-func (sb SetBreakpoint) Call(ctx context.Context, cln *client.Client, val Value, opts Option, args ...string) (Value, error) {
+func (sb SetBreakpoint) Call(ctx context.Context, cln solver.Client, val Value, opts Option, args ...string) (Value, error) {
 	return val, nil
 }
 
 type Mkdir struct{}
 
-func (m Mkdir) Call(ctx context.Context, cln *client.Client, val Value, opts Option, path string, mode os.FileMode) (Value, error) {
+func (m Mkdir) Call(ctx context.Context, cln solver.Client, val Value, opts Option, path string, mode os.FileMode) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -527,7 +503,7 @@ func (m Mkdir) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type Mkfile struct{}
 
-func (m Mkfile) Call(ctx context.Context, cln *client.Client, val Value, opts Option, path string, mode os.FileMode, content string) (Value, error) {
+func (m Mkfile) Call(ctx context.Context, cln solver.Client, val Value, opts Option, path string, mode os.FileMode, content string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -550,7 +526,7 @@ func (m Mkfile) Call(ctx context.Context, cln *client.Client, val Value, opts Op
 
 type Rm struct{}
 
-func (m Rm) Call(ctx context.Context, cln *client.Client, val Value, opts Option, path string) (Value, error) {
+func (m Rm) Call(ctx context.Context, cln solver.Client, val Value, opts Option, path string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -573,7 +549,7 @@ func (m Rm) Call(ctx context.Context, cln *client.Client, val Value, opts Option
 
 type Copy struct{}
 
-func (m Copy) Call(ctx context.Context, cln *client.Client, val Value, opts Option, input Filesystem, src, dest string) (Value, error) {
+func (m Copy) Call(ctx context.Context, cln solver.Client, val Value, opts Option, input Filesystem, src, dest string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -600,7 +576,7 @@ func (m Copy) Call(ctx context.Context, cln *client.Client, val Value, opts Opti
 
 type Merge struct{}
 
-func (m Merge) Call(ctx context.Context, cln *client.Client, val Value, opts Option, inputs ...Filesystem) (Value, error) {
+func (m Merge) Call(ctx context.Context, cln solver.Client, val Value, opts Option, inputs ...Filesystem) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -625,7 +601,7 @@ func (m Merge) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type Diff struct{}
 
-func (d Diff) Call(ctx context.Context, cln *client.Client, val Value, opts Option, input Filesystem) (Value, error) {
+func (d Diff) Call(ctx context.Context, cln solver.Client, val Value, opts Option, input Filesystem) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -640,7 +616,7 @@ func (d Diff) Call(ctx context.Context, cln *client.Client, val Value, opts Opti
 
 type Entrypoint struct{}
 
-func (e Entrypoint) Call(ctx context.Context, cln *client.Client, val Value, opts Option, entrypoint ...string) (Value, error) {
+func (e Entrypoint) Call(ctx context.Context, cln solver.Client, val Value, opts Option, entrypoint ...string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -653,7 +629,7 @@ func (e Entrypoint) Call(ctx context.Context, cln *client.Client, val Value, opt
 
 type Cmd struct{}
 
-func (c Cmd) Call(ctx context.Context, cln *client.Client, val Value, opts Option, cmd ...string) (Value, error) {
+func (c Cmd) Call(ctx context.Context, cln solver.Client, val Value, opts Option, cmd ...string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -665,7 +641,7 @@ func (c Cmd) Call(ctx context.Context, cln *client.Client, val Value, opts Optio
 
 type Label struct{}
 
-func (l Label) Call(ctx context.Context, cln *client.Client, val Value, opts Option, key, value string) (Value, error) {
+func (l Label) Call(ctx context.Context, cln solver.Client, val Value, opts Option, key, value string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -692,7 +668,7 @@ func (l Label) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type Expose struct{}
 
-func (e Expose) Call(ctx context.Context, cln *client.Client, val Value, opts Option, ports ...string) (Value, error) {
+func (e Expose) Call(ctx context.Context, cln solver.Client, val Value, opts Option, ports ...string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -711,7 +687,7 @@ func (e Expose) Call(ctx context.Context, cln *client.Client, val Value, opts Op
 
 type Volumes struct{}
 
-func (Volumes) Call(ctx context.Context, cln *client.Client, val Value, opts Option, mountpoints ...string) (Value, error) {
+func (Volumes) Call(ctx context.Context, cln solver.Client, val Value, opts Option, mountpoints ...string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -730,7 +706,7 @@ func (Volumes) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type StopSignal struct{}
 
-func (ss StopSignal) Call(ctx context.Context, cln *client.Client, val Value, opts Option, signal string) (Value, error) {
+func (ss StopSignal) Call(ctx context.Context, cln solver.Client, val Value, opts Option, signal string) (Value, error) {
 	fs, err := val.Filesystem()
 	if err != nil {
 		return nil, err
@@ -742,7 +718,7 @@ func (ss StopSignal) Call(ctx context.Context, cln *client.Client, val Value, op
 
 type DockerPush struct{}
 
-func (dp DockerPush) Call(ctx context.Context, cln *client.Client, val Value, opts Option, ref string) (Value, error) {
+func (dp DockerPush) Call(ctx context.Context, cln solver.Client, val Value, opts Option, ref string) (Value, error) {
 	named, err := reference.ParseNormalizedNamed(ref)
 	if err != nil {
 		return nil, errdefs.WithInvalidImageRef(err, Arg(ctx, 0), ref)
@@ -823,7 +799,7 @@ func (dp DockerPush) Call(ctx context.Context, cln *client.Client, val Value, op
 		exportFS.SolveOpts = append(exportFS.SolveOpts,
 			solver.WithPushMoby(ref),
 			solver.WithCallback(func(_ context.Context, resp *client.SolveResponse) error {
-				mw := MultiWriter(ctx)
+				mw := solver.LoadMultiWriter(ctx)
 				if mw == nil {
 					return nil
 				}
@@ -854,7 +830,7 @@ func (dp DockerPush) Call(ctx context.Context, cln *client.Client, val Value, op
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		return request.Solve(ctx, cln, MultiWriter(ctx))
+		return request.Solve(ctx, cln, solver.LoadMultiWriter(ctx))
 	})
 
 	if Binding(ctx).Binds() == "digest" {
@@ -952,7 +928,7 @@ func pushWithMoby(ctx context.Context, dockerAPI DockerAPIClient, ref string, l 
 
 type DockerLoad struct{}
 
-func (dl DockerLoad) Call(ctx context.Context, cln *client.Client, val Value, opts Option, ref string) (Value, error) {
+func (dl DockerLoad) Call(ctx context.Context, cln solver.Client, val Value, opts Option, ref string) (Value, error) {
 	_, err := reference.ParseNormalizedNamed(ref)
 	if err != nil {
 		return nil, errdefs.WithInvalidImageRef(err, Arg(ctx, 0), ref)
@@ -1021,7 +997,7 @@ func (dl DockerLoad) Call(ctx context.Context, cln *client.Client, val Value, op
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		return request.Solve(ctx, cln, MultiWriter(ctx))
+		return request.Solve(ctx, cln, solver.LoadMultiWriter(ctx))
 	})
 
 	g.Go(func() (err error) {
@@ -1039,7 +1015,7 @@ func (dl DockerLoad) Call(ctx context.Context, cln *client.Client, val Value, op
 		}
 		defer resp.Body.Close()
 
-		mw := MultiWriter(ctx)
+		mw := solver.LoadMultiWriter(ctx)
 		if mw == nil {
 			_, err = io.Copy(ioutil.Discard, resp.Body)
 			return err
@@ -1063,7 +1039,7 @@ func (dl DockerLoad) Call(ctx context.Context, cln *client.Client, val Value, op
 
 type Download struct{}
 
-func (d Download) Call(ctx context.Context, cln *client.Client, val Value, opts Option, localPath string) (Value, error) {
+func (d Download) Call(ctx context.Context, cln solver.Client, val Value, opts Option, localPath string) (Value, error) {
 	localPath, err := parser.ResolvePath(ModuleDir(ctx), localPath)
 	if err != nil {
 		return nil, err
@@ -1097,7 +1073,7 @@ func (d Download) Call(ctx context.Context, cln *client.Client, val Value, opts 
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		return request.Solve(ctx, cln, MultiWriter(ctx))
+		return request.Solve(ctx, cln, solver.LoadMultiWriter(ctx))
 	})
 
 	fs, err := val.Filesystem()
@@ -1112,7 +1088,7 @@ func (d Download) Call(ctx context.Context, cln *client.Client, val Value, opts 
 
 type DownloadTarball struct{}
 
-func (dt DownloadTarball) Call(ctx context.Context, cln *client.Client, val Value, opts Option, localPath string) (Value, error) {
+func (dt DownloadTarball) Call(ctx context.Context, cln solver.Client, val Value, opts Option, localPath string) (Value, error) {
 	localPath, err := parser.ResolvePath(ModuleDir(ctx), localPath)
 	if err != nil {
 		return nil, err
@@ -1156,7 +1132,7 @@ func (dt DownloadTarball) Call(ctx context.Context, cln *client.Client, val Valu
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		return request.Solve(ctx, cln, MultiWriter(ctx))
+		return request.Solve(ctx, cln, solver.LoadMultiWriter(ctx))
 	})
 
 	fs, err := val.Filesystem()
@@ -1171,7 +1147,7 @@ func (dt DownloadTarball) Call(ctx context.Context, cln *client.Client, val Valu
 
 type DownloadOCITarball struct{}
 
-func (dot DownloadOCITarball) Call(ctx context.Context, cln *client.Client, val Value, opts Option, localPath string) (Value, error) {
+func (dot DownloadOCITarball) Call(ctx context.Context, cln solver.Client, val Value, opts Option, localPath string) (Value, error) {
 	localPath, err := parser.ResolvePath(ModuleDir(ctx), localPath)
 	if err != nil {
 		return nil, err
@@ -1220,7 +1196,7 @@ func (dot DownloadOCITarball) Call(ctx context.Context, cln *client.Client, val 
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		return request.Solve(ctx, cln, MultiWriter(ctx))
+		return request.Solve(ctx, cln, solver.LoadMultiWriter(ctx))
 	})
 
 	fs, err := val.Filesystem()
@@ -1235,7 +1211,7 @@ func (dot DownloadOCITarball) Call(ctx context.Context, cln *client.Client, val 
 
 type DownloadDockerTarball struct{}
 
-func (dot DownloadDockerTarball) Call(ctx context.Context, cln *client.Client, val Value, opts Option, localPath, ref string) (Value, error) {
+func (dot DownloadDockerTarball) Call(ctx context.Context, cln solver.Client, val Value, opts Option, localPath, ref string) (Value, error) {
 	localPath, err := parser.ResolvePath(ModuleDir(ctx), localPath)
 	if err != nil {
 		return nil, err
@@ -1293,7 +1269,7 @@ func (dot DownloadDockerTarball) Call(ctx context.Context, cln *client.Client, v
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		return request.Solve(ctx, cln, MultiWriter(ctx))
+		return request.Solve(ctx, cln, solver.LoadMultiWriter(ctx))
 	})
 
 	fs, err := val.Filesystem()

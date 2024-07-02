@@ -8,12 +8,12 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/moby/buildkit/client"
 	"github.com/openllb/hlb"
 	"github.com/openllb/hlb/checker"
 	"github.com/openllb/hlb/diagnostic"
 	"github.com/openllb/hlb/errdefs"
 	"github.com/openllb/hlb/linter"
+	"github.com/openllb/hlb/solver"
 	cli "github.com/urfave/cli/v2"
 )
 
@@ -51,7 +51,7 @@ type LintInfo struct {
 	Stderr io.Writer
 }
 
-func Lint(ctx context.Context, cln *client.Client, uri string, info LintInfo) error {
+func Lint(ctx context.Context, cln solver.Client, uri string, info LintInfo) error {
 	if info.Stdin == nil {
 		info.Stdin = os.Stdin
 	}

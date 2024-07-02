@@ -4,16 +4,12 @@ import (
 	"context"
 	"sync"
 
-	"github.com/docker/buildx/util/progress"
-	"github.com/moby/buildkit/client"
 	"github.com/moby/buildkit/client/llb"
 	"github.com/moby/buildkit/client/llb/sourceresolver"
 	gateway "github.com/moby/buildkit/frontend/gateway/client"
 	digest "github.com/opencontainers/go-digest"
 	"github.com/openllb/hlb/parser/ast"
-	"github.com/openllb/hlb/pkg/llbutil"
 	"github.com/openllb/hlb/solver"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -28,7 +24,7 @@ type Resolver interface {
 	Resolve(ctx context.Context, id *ast.ImportDecl, fs Filesystem) (ast.Directory, error)
 }
 
-func NewCachedImageResolver(cln *client.Client) llb.ImageMetaResolver {
+func NewCachedImageResolver(cln solver.Client) llb.ImageMetaResolver {
 	return &cachedImageResolver{
 		cln:   cln,
 		cache: make(map[cacheKey]*imageConfig),
@@ -42,7 +38,7 @@ type cacheKey struct {
 }
 
 type cachedImageResolver struct {
-	cln   *client.Client
+	cln   solver.Client
 	cache map[cacheKey]*imageConfig
 	mu    sync.RWMutex
 }
@@ -66,33 +62,10 @@ func (r *cachedImageResolver) ResolveImageConfig(ctx context.Context, ref string
 		return cfg.ref, cfg.dgst, cfg.config, nil
 	}
 
-	s, err := llbutil.NewSession(ctx)
-	if err != nil {
-		return
-	}
-
-	g, ctx := errgroup.WithContext(ctx)
-
-	g.Go(func() error {
-		return s.Run(ctx, r.cln.Dialer())
+	err = solver.Build(ctx, r.cln, nil, func(ctx context.Context, c gateway.Client) (res *gateway.Result, err error) {
+		resolvedRef, dgst, config, err = c.ResolveImageConfig(ctx, ref, opt)
+		return gateway.NewResult(), err
 	})
-
-	g.Go(func() error {
-		defer s.Close()
-		var pw progress.Writer
-
-		mw := MultiWriter(ctx)
-		if mw != nil {
-			pw = mw.WithPrefix("", false)
-		}
-
-		return solver.Build(ctx, r.cln, s, pw, func(ctx context.Context, c gateway.Client) (res *gateway.Result, err error) {
-			resolvedRef, dgst, config, err = c.ResolveImageConfig(ctx, ref, opt)
-			return gateway.NewResult(), err
-		})
-	})
-
-	err = g.Wait()
 	if err != nil {
 		return
 	}

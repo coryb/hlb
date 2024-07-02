@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/moby/buildkit/client"
 	"github.com/moby/buildkit/solver/errdefs"
 	"github.com/openllb/hlb/diagnostic"
 	"github.com/openllb/hlb/parser/ast"
+	"github.com/openllb/hlb/solver"
 	"github.com/pkg/errors"
 )
 
@@ -103,7 +103,7 @@ type State struct {
 }
 
 type debugger struct {
-	cln *client.Client
+	cln solver.Client
 	err error
 	mu  sync.Mutex
 
@@ -136,7 +136,7 @@ func WithInitialMode(mode DebugMode) DebuggerOption {
 }
 
 // NewDebugger returns a headless debugger.
-func NewDebugger(cln *client.Client, opts ...DebuggerOption) Debugger {
+func NewDebugger(cln solver.Client, opts ...DebuggerOption) Debugger {
 	dbgr := &debugger{
 		cln:           cln,
 		mode:          DebugStartStop,
@@ -318,7 +318,7 @@ func (d *debugger) yield(ctx context.Context, scope *ast.Scope, node ast.Node, v
 			return ProgramCounter(ctx).WithError(err)
 		}
 
-		err = req.Solve(ctx, d.cln, MultiWriter(ctx))
+		err = req.Solve(ctx, d.cln, solver.LoadMultiWriter(ctx))
 		if err != nil {
 			// If debugger has an error, continue to exit.
 			if d.err != nil {

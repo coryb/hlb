@@ -7,6 +7,7 @@ import (
 )
 
 type concurrencyLimiterKey struct{}
+type multiwriterKey struct{}
 
 func WithConcurrencyLimiter(ctx context.Context, limiter *semaphore.Weighted) context.Context {
 	return context.WithValue(ctx, concurrencyLimiterKey{}, limiter)
@@ -15,4 +16,13 @@ func WithConcurrencyLimiter(ctx context.Context, limiter *semaphore.Weighted) co
 func ConcurrencyLimiter(ctx context.Context) *semaphore.Weighted {
 	limiter, _ := ctx.Value(concurrencyLimiterKey{}).(*semaphore.Weighted)
 	return limiter
+}
+
+func WithMultiWriter(ctx context.Context, mw *MultiWriter) context.Context {
+	return context.WithValue(ctx, multiwriterKey{}, mw)
+}
+
+func LoadMultiWriter(ctx context.Context) *MultiWriter {
+	mw, _ := ctx.Value(multiwriterKey{}).(*MultiWriter)
+	return mw
 }

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/moby/buildkit/client"
 	"github.com/openllb/hlb/codegen"
 	"github.com/openllb/hlb/parser/ast"
+	"github.com/openllb/hlb/solver"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -17,7 +17,7 @@ import (
 //
 // If tidy mode is enabled, vertices with digests that already exist in the
 // modules directory are skipped, and unused modules are pruned.
-func Vendor(ctx context.Context, cln *client.Client, mod *ast.Module, targets []string, tidy bool) error {
+func Vendor(ctx context.Context, cln solver.Client, mod *ast.Module, targets []string, tidy bool) error {
 	root := ModulesPath
 
 	var mu sync.Mutex

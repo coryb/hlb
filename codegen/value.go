@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/moby/buildkit/client"
 	"github.com/moby/buildkit/client/llb"
 	digest "github.com/opencontainers/go-digest"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
@@ -27,7 +26,7 @@ var (
 
 type Prototype struct{}
 
-func (p Prototype) Call(ctx context.Context, cln *client.Client, v Value, opts Option) (Value, error) {
+func (p Prototype) Call(ctx context.Context, cln solver.Client, v Value, opts Option) (Value, error) {
 	return nil, nil
 }
 

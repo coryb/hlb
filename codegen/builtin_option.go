@@ -33,13 +33,13 @@ import (
 
 type Resolve struct{}
 
-func (ir Resolve) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (ir Resolve) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	return val, nil
 }
 
 type Checksum struct{}
 
-func (c Checksum) Call(ctx context.Context, cln *client.Client, val Value, opts Option, dgst digest.Digest) (Value, error) {
+func (c Checksum) Call(ctx context.Context, cln solver.Client, val Value, opts Option, dgst digest.Digest) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (c Checksum) Call(ctx context.Context, cln *client.Client, val Value, opts 
 
 type Chmod struct{}
 
-func (c Chmod) Call(ctx context.Context, cln *client.Client, val Value, opts Option, mode os.FileMode) (Value, error) {
+func (c Chmod) Call(ctx context.Context, cln solver.Client, val Value, opts Option, mode os.FileMode) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (c Chmod) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type Filename struct{}
 
-func (f Filename) Call(ctx context.Context, cln *client.Client, val Value, opts Option, filename string) (Value, error) {
+func (f Filename) Call(ctx context.Context, cln solver.Client, val Value, opts Option, filename string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (f Filename) Call(ctx context.Context, cln *client.Client, val Value, opts 
 
 type KeepGitDir struct{}
 
-func (kgd KeepGitDir) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (kgd KeepGitDir) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (kgd KeepGitDir) Call(ctx context.Context, cln *client.Client, val Value, o
 
 type IncludePatterns struct{}
 
-func (ip IncludePatterns) Call(ctx context.Context, cln *client.Client, val Value, opts Option, patterns ...string) (Value, error) {
+func (ip IncludePatterns) Call(ctx context.Context, cln solver.Client, val Value, opts Option, patterns ...string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (ip IncludePatterns) Call(ctx context.Context, cln *client.Client, val Valu
 
 type ExcludePatterns struct{}
 
-func (ep ExcludePatterns) Call(ctx context.Context, cln *client.Client, val Value, opts Option, patterns ...string) (Value, error) {
+func (ep ExcludePatterns) Call(ctx context.Context, cln solver.Client, val Value, opts Option, patterns ...string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (ep ExcludePatterns) Call(ctx context.Context, cln *client.Client, val Valu
 
 type FrontendInput struct{}
 
-func (fi FrontendInput) Call(ctx context.Context, cln *client.Client, val Value, opts Option, key string, input Filesystem) (Value, error) {
+func (fi FrontendInput) Call(ctx context.Context, cln solver.Client, val Value, opts Option, key string, input Filesystem) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (fi FrontendInput) Call(ctx context.Context, cln *client.Client, val Value,
 
 type FrontendOpt struct{}
 
-func (fo FrontendOpt) Call(ctx context.Context, cln *client.Client, val Value, opts Option, key, value string) (Value, error) {
+func (fo FrontendOpt) Call(ctx context.Context, cln solver.Client, val Value, opts Option, key, value string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (fo FrontendOpt) Call(ctx context.Context, cln *client.Client, val Value, o
 
 type CreateParents struct{}
 
-func (cp CreateParents) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (cp CreateParents) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (cp CreateParents) Call(ctx context.Context, cln *client.Client, val Value,
 
 type Chown struct{}
 
-func (c Chown) Call(ctx context.Context, cln *client.Client, val Value, opts Option, owner string) (Value, error) {
+func (c Chown) Call(ctx context.Context, cln solver.Client, val Value, opts Option, owner string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -162,7 +162,7 @@ func (c Chown) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type CreatedTime struct{}
 
-func (ct CreatedTime) Call(ctx context.Context, cln *client.Client, val Value, opts Option, t time.Time) (Value, error) {
+func (ct CreatedTime) Call(ctx context.Context, cln solver.Client, val Value, opts Option, t time.Time) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -173,7 +173,7 @@ func (ct CreatedTime) Call(ctx context.Context, cln *client.Client, val Value, o
 
 type AllowNotFound struct{}
 
-func (anf AllowNotFound) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (anf AllowNotFound) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func (anf AllowNotFound) Call(ctx context.Context, cln *client.Client, val Value
 
 type AllowWildcard struct{}
 
-func (aw AllowWildcard) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (aw AllowWildcard) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -195,7 +195,7 @@ func (aw AllowWildcard) Call(ctx context.Context, cln *client.Client, val Value,
 
 type FollowSymlinks struct{}
 
-func (fs FollowSymlinks) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (fs FollowSymlinks) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func (fs FollowSymlinks) Call(ctx context.Context, cln *client.Client, val Value
 
 type ContentsOnly struct{}
 
-func (co ContentsOnly) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (co ContentsOnly) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -217,7 +217,7 @@ func (co ContentsOnly) Call(ctx context.Context, cln *client.Client, val Value, 
 
 type Unpack struct{}
 
-func (u Unpack) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (u Unpack) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -228,7 +228,7 @@ func (u Unpack) Call(ctx context.Context, cln *client.Client, val Value, opts Op
 
 type CreateDestPath struct{}
 
-func (cdp CreateDestPath) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (cdp CreateDestPath) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -239,7 +239,7 @@ func (cdp CreateDestPath) Call(ctx context.Context, cln *client.Client, val Valu
 
 type CopyAllowWildcard struct{}
 
-func (caw CopyAllowWildcard) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (caw CopyAllowWildcard) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -250,7 +250,7 @@ func (caw CopyAllowWildcard) Call(ctx context.Context, cln *client.Client, val V
 
 type AllowEmptyWildcard struct{}
 
-func (aew AllowEmptyWildcard) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (aew AllowEmptyWildcard) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -261,7 +261,7 @@ func (aew AllowEmptyWildcard) Call(ctx context.Context, cln *client.Client, val 
 
 type UtilChown struct{}
 
-func (uc UtilChown) Call(ctx context.Context, cln *client.Client, val Value, opts Option, owner string) (Value, error) {
+func (uc UtilChown) Call(ctx context.Context, cln solver.Client, val Value, opts Option, owner string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -272,7 +272,7 @@ func (uc UtilChown) Call(ctx context.Context, cln *client.Client, val Value, opt
 
 type UtilChmod struct{}
 
-func (uc UtilChmod) Call(ctx context.Context, cln *client.Client, val Value, opts Option, mode os.FileMode) (Value, error) {
+func (uc UtilChmod) Call(ctx context.Context, cln solver.Client, val Value, opts Option, mode os.FileMode) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -283,7 +283,7 @@ func (uc UtilChmod) Call(ctx context.Context, cln *client.Client, val Value, opt
 
 type UtilCreatedTime struct{}
 
-func (uct UtilCreatedTime) Call(ctx context.Context, cln *client.Client, val Value, opts Option, t time.Time) (Value, error) {
+func (uct UtilCreatedTime) Call(ctx context.Context, cln solver.Client, val Value, opts Option, t time.Time) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -299,7 +299,7 @@ type TemplateField struct {
 
 type StringField struct{}
 
-func (sf StringField) Call(ctx context.Context, cln *client.Client, val Value, opts Option, name, value string) (Value, error) {
+func (sf StringField) Call(ctx context.Context, cln solver.Client, val Value, opts Option, name, value string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -316,7 +316,7 @@ type LocalRunOption struct {
 
 type IgnoreError struct{}
 
-func (ie IgnoreError) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (ie IgnoreError) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -329,7 +329,7 @@ func (ie IgnoreError) Call(ctx context.Context, cln *client.Client, val Value, o
 
 type OnlyStderr struct{}
 
-func (os OnlyStderr) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (os OnlyStderr) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -342,7 +342,7 @@ func (os OnlyStderr) Call(ctx context.Context, cln *client.Client, val Value, op
 
 type IncludeStderr struct{}
 
-func (is IncludeStderr) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (is IncludeStderr) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -355,7 +355,7 @@ func (is IncludeStderr) Call(ctx context.Context, cln *client.Client, val Value,
 
 type Shlex struct{}
 
-func (s Shlex) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (s Shlex) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -387,7 +387,7 @@ func ShlexArgs(args []string, shlex bool) ([]string, error) {
 
 type ReadonlyRootfs struct{}
 
-func (rr ReadonlyRootfs) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (rr ReadonlyRootfs) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -398,7 +398,7 @@ func (rr ReadonlyRootfs) Call(ctx context.Context, cln *client.Client, val Value
 
 type RunEnv struct{}
 
-func (re RunEnv) Call(ctx context.Context, cln *client.Client, val Value, opts Option, key, value string) (Value, error) {
+func (re RunEnv) Call(ctx context.Context, cln solver.Client, val Value, opts Option, key, value string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -409,7 +409,7 @@ func (re RunEnv) Call(ctx context.Context, cln *client.Client, val Value, opts O
 
 type RunDir struct{}
 
-func (rd RunDir) Call(ctx context.Context, cln *client.Client, val Value, opts Option, path string) (Value, error) {
+func (rd RunDir) Call(ctx context.Context, cln solver.Client, val Value, opts Option, path string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -420,7 +420,7 @@ func (rd RunDir) Call(ctx context.Context, cln *client.Client, val Value, opts O
 
 type RunUser struct{}
 
-func (ru RunUser) Call(ctx context.Context, cln *client.Client, val Value, opts Option, name string) (Value, error) {
+func (ru RunUser) Call(ctx context.Context, cln solver.Client, val Value, opts Option, name string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -431,7 +431,7 @@ func (ru RunUser) Call(ctx context.Context, cln *client.Client, val Value, opts 
 
 type IgnoreCache struct{}
 
-func (ig IgnoreCache) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (ig IgnoreCache) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -442,7 +442,7 @@ func (ig IgnoreCache) Call(ctx context.Context, cln *client.Client, val Value, o
 
 type Network struct{}
 
-func (n Network) Call(ctx context.Context, cln *client.Client, val Value, opts Option, mode string) (Value, error) {
+func (n Network) Call(ctx context.Context, cln solver.Client, val Value, opts Option, mode string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -466,7 +466,7 @@ func (n Network) Call(ctx context.Context, cln *client.Client, val Value, opts O
 
 type Security struct{}
 
-func (s Security) Call(ctx context.Context, cln *client.Client, val Value, opts Option, mode string) (Value, error) {
+func (s Security) Call(ctx context.Context, cln solver.Client, val Value, opts Option, mode string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -488,7 +488,7 @@ func (s Security) Call(ctx context.Context, cln *client.Client, val Value, opts 
 
 type Host struct{}
 
-func (s Host) Call(ctx context.Context, cln *client.Client, val Value, opts Option, host string, address net.IP) (Value, error) {
+func (s Host) Call(ctx context.Context, cln solver.Client, val Value, opts Option, host string, address net.IP) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -499,7 +499,7 @@ func (s Host) Call(ctx context.Context, cln *client.Client, val Value, opts Opti
 
 type SSH struct{}
 
-func (s SSH) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (s SSH) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -533,7 +533,7 @@ func (s SSH) Call(ctx context.Context, cln *client.Client, val Value, opts Optio
 
 type Forward struct{}
 
-func (f Forward) Call(ctx context.Context, cln *client.Client, val Value, opts Option, src *url.URL, dest string) (Value, error) {
+func (f Forward) Call(ctx context.Context, cln solver.Client, val Value, opts Option, src *url.URL, dest string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -627,7 +627,7 @@ func isClosedNetworkError(err error) bool {
 
 type Secret struct{}
 
-func (s Secret) Call(ctx context.Context, cln *client.Client, val Value, opts Option, localPath, mountpoint string) (Value, error) {
+func (s Secret) Call(ctx context.Context, cln solver.Client, val Value, opts Option, localPath, mountpoint string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -687,7 +687,7 @@ type Mount struct {
 	Image *solver.ImageSpec
 }
 
-func (m Mount) Call(ctx context.Context, cln *client.Client, val Value, opts Option, input Filesystem, mountpoint string) (Value, error) {
+func (m Mount) Call(ctx context.Context, cln solver.Client, val Value, opts Option, input Filesystem, mountpoint string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -729,7 +729,7 @@ func (m Mount) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type MountTarget struct{}
 
-func (mt MountTarget) Call(ctx context.Context, cln *client.Client, val Value, opts Option, target string) (Value, error) {
+func (mt MountTarget) Call(ctx context.Context, cln solver.Client, val Value, opts Option, target string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -740,7 +740,7 @@ func (mt MountTarget) Call(ctx context.Context, cln *client.Client, val Value, o
 
 type UID struct{}
 
-func (u UID) Call(ctx context.Context, cln *client.Client, val Value, opts Option, uid int) (Value, error) {
+func (u UID) Call(ctx context.Context, cln solver.Client, val Value, opts Option, uid int) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -751,7 +751,7 @@ func (u UID) Call(ctx context.Context, cln *client.Client, val Value, opts Optio
 
 type GID struct{}
 
-func (g GID) Call(ctx context.Context, cln *client.Client, val Value, opts Option, gid int) (Value, error) {
+func (g GID) Call(ctx context.Context, cln solver.Client, val Value, opts Option, gid int) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -762,7 +762,7 @@ func (g GID) Call(ctx context.Context, cln *client.Client, val Value, opts Optio
 
 type LocalPaths struct{}
 
-func (lp LocalPaths) Call(ctx context.Context, cln *client.Client, val Value, opts Option, localPaths ...string) (Value, error) {
+func (lp LocalPaths) Call(ctx context.Context, cln solver.Client, val Value, opts Option, localPaths ...string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -781,7 +781,7 @@ func (lp LocalPaths) Call(ctx context.Context, cln *client.Client, val Value, op
 
 type Readonly struct{}
 
-func (r Readonly) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (r Readonly) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -792,7 +792,7 @@ func (r Readonly) Call(ctx context.Context, cln *client.Client, val Value, opts 
 
 type Tmpfs struct{}
 
-func (t Tmpfs) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (t Tmpfs) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -803,7 +803,7 @@ func (t Tmpfs) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type SourcePath struct{}
 
-func (sp SourcePath) Call(ctx context.Context, cln *client.Client, val Value, opts Option, path string) (Value, error) {
+func (sp SourcePath) Call(ctx context.Context, cln solver.Client, val Value, opts Option, path string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -816,7 +816,7 @@ type Cache struct {
 	ast.Node
 }
 
-func (c Cache) Call(ctx context.Context, cln *client.Client, val Value, opts Option, id, mode string) (Value, error) {
+func (c Cache) Call(ctx context.Context, cln solver.Client, val Value, opts Option, id, mode string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -840,7 +840,7 @@ func (c Cache) Call(ctx context.Context, cln *client.Client, val Value, opts Opt
 
 type Platform struct{}
 
-func (p Platform) Call(ctx context.Context, cln *client.Client, val Value, opts Option, os, arch string) (Value, error) {
+func (p Platform) Call(ctx context.Context, cln solver.Client, val Value, opts Option, os, arch string) (Value, error) {
 	retOpts, err := val.Option()
 	if err != nil {
 		return nil, err
@@ -854,7 +854,7 @@ func (p Platform) Call(ctx context.Context, cln *client.Client, val Value, opts 
 
 type Stargz struct{}
 
-func (s Stargz) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (s Stargz) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	dockerAPI := DockerAPI(ctx)
 	if dockerAPI.Moby {
 		return nil, errdefs.WithDockerEngineUnsupported(ProgramCounter(ctx))

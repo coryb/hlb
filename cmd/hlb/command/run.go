@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/mattn/go-isatty"
-	"github.com/moby/buildkit/client"
 	solvererrdefs "github.com/moby/buildkit/solver/errdefs"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/openllb/hlb"
@@ -109,7 +108,7 @@ func GetURI(c *cli.Context) (uri string, err error) {
 	return
 }
 
-func ParseModuleURI(ctx context.Context, cln *client.Client, stdin io.Reader, uri string) (*ast.Module, error) {
+func ParseModuleURI(ctx context.Context, cln solver.Client, stdin io.Reader, uri string) (*ast.Module, error) {
 	if uri == "-" {
 		return parser.Parse(ctx, &parser.NamedReader{
 			Reader: stdin,
@@ -155,7 +154,7 @@ type RunInfo struct {
 	Arch    string
 }
 
-func Run(ctx context.Context, cln *client.Client, uri string, info RunInfo) (err error) {
+func Run(ctx context.Context, cln solver.Client, uri string, info RunInfo) (err error) {
 	if len(info.Targets) == 0 {
 		info.Targets = []string{"default"}
 	}
@@ -242,7 +241,7 @@ func Run(ctx context.Context, cln *client.Client, uri string, info RunInfo) (err
 
 	// store Progress in context in case we need to synchronize output later
 	ctx = codegen.WithProgress(ctx, p)
-	ctx = codegen.WithMultiWriter(ctx, p.MultiWriter())
+	ctx = solver.WithMultiWriter(ctx, p.MultiWriter())
 
 	defer func() {
 		if err == nil {

@@ -3,13 +3,12 @@ package codegen
 import (
 	"context"
 
-	"github.com/moby/buildkit/client"
 	"github.com/openllb/hlb/solver"
 )
 
 type Stage struct{}
 
-func (s Stage) Call(ctx context.Context, cln *client.Client, val Value, opts Option, requests ...solver.Request) (Value, error) {
+func (s Stage) Call(ctx context.Context, cln solver.Client, val Value, opts Option, requests ...solver.Request) (Value, error) {
 	if len(requests) == 0 {
 		return val, nil
 	}

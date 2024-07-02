@@ -13,6 +13,7 @@ import (
 	"github.com/moby/buildkit/session"
 	"github.com/moby/buildkit/util/entitlements"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/openllb/hlb/pkg/llbutil"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -149,7 +150,7 @@ func WithStargz(forceCompression bool) SolveOption {
 	}
 }
 
-func Solve(ctx context.Context, c *client.Client, s *session.Session, pw progress.Writer, def *llb.Definition, opts ...SolveOption) error {
+func Solve(ctx context.Context, c Client, sessionOpts []llbutil.SessionOption, def *llb.Definition, opts ...SolveOption) error {
 	info := &SolveInfo{}
 	for _, opt := range opts {
 		err := opt(info)
@@ -159,7 +160,7 @@ func Solve(ctx context.Context, c *client.Client, s *session.Session, pw progres
 	}
 
 	var errHandlerErr error
-	err := Build(ctx, c, s, pw, func(ctx context.Context, c gateway.Client) (*gateway.Result, error) {
+	err := Build(ctx, c, sessionOpts, func(ctx context.Context, c gateway.Client) (*gateway.Result, error) {
 		res, err := c.Solve(ctx, gateway.SolveRequest{
 			Definition: def.ToPB(),
 			Evaluate:   info.Evaluate,
@@ -192,7 +193,40 @@ func Solve(ctx context.Context, c *client.Client, s *session.Session, pw progres
 	return err
 }
 
-func Build(ctx context.Context, c *client.Client, s *session.Session, pw progress.Writer, f gateway.BuildFunc, opts ...SolveOption) error {
+func Build(ctx context.Context, c Client, sessionOpts []llbutil.SessionOption, f gateway.BuildFunc, opts ...SolveOption) error {
+	// If we have a gatewayClient just call f directly asssuming the
+	// session has also aready been established.
+	if gw := c.gatewayClient(); gw != nil {
+		_, err := f(ctx, gw)
+		return err
+	}
+
+	cln := c.buildkitClient()
+
+	s, err := llbutil.NewSession(ctx, sessionOpts...)
+	if err != nil {
+		return err
+	}
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		return s.Run(ctx, cln.Dialer())
+	})
+
+	g.Go(func() error {
+		defer s.Close()
+		var pw progress.Writer
+
+		mw := LoadMultiWriter(ctx)
+		if mw != nil {
+			pw = mw.WithPrefix("", false)
+		}
+		return buildkitBuild(ctx, cln, s, pw, f, opts...)
+	})
+	return g.Wait()
+}
+
+func buildkitBuild(ctx context.Context, c *client.Client, s *session.Session, pw progress.Writer, f gateway.BuildFunc, opts ...SolveOption) error {
 	info := &SolveInfo{}
 	for _, opt := range opts {
 		err := opt(info)

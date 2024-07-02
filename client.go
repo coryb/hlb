@@ -19,7 +19,7 @@ import (
 // If addr is empty, an attempt is made to connect to docker engine's embedded
 // BuildKit which supports a subset of the exporters and special `moby`
 // exporter.
-func Client(ctx context.Context, addr string) (*client.Client, context.Context, error) {
+func Client(ctx context.Context, addr string) (solver.Client, context.Context, error) {
 	// Attempt to connect to a healthy docker engine.
 	dockerCli, auth, err := NewDockerCli(ctx)
 
@@ -37,7 +37,7 @@ func Client(ctx context.Context, addr string) (*client.Client, context.Context, 
 	}), client.WithSessionDialer(func(ctx context.Context, proto string, meta map[string][]string) (net.Conn, error) {
 		return dockerCli.Client().DialHijack(ctx, "/session", proto, meta)
 	}))
-	return cln, ctx, err
+	return solver.NewClientFromBuildkit(cln), ctx, err
 }
 
 func NewDockerCli(ctx context.Context) (dockerCli *dockercommand.DockerCli, auth imagetools.Auth, err error) {

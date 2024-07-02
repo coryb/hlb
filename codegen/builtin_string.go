@@ -12,17 +12,17 @@ import (
 	"github.com/containerd/containerd/images"
 	"github.com/containerd/containerd/platforms"
 	"github.com/docker/distribution/reference"
-	"github.com/moby/buildkit/client"
 	"github.com/moby/buildkit/client/llb/sourceresolver"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/openllb/hlb/errdefs"
 	"github.com/openllb/hlb/local"
 	"github.com/openllb/hlb/pkg/imageutil"
+	"github.com/openllb/hlb/solver"
 )
 
 type Format struct{}
 
-func (f Format) Call(ctx context.Context, cln *client.Client, val Value, opts Option, formatStr string, values ...string) (Value, error) {
+func (f Format) Call(ctx context.Context, cln solver.Client, val Value, opts Option, formatStr string, values ...string) (Value, error) {
 	var a []interface{}
 	for _, value := range values {
 		a = append(a, value)
@@ -32,7 +32,7 @@ func (f Format) Call(ctx context.Context, cln *client.Client, val Value, opts Op
 
 type Template struct{}
 
-func (t Template) Call(ctx context.Context, cln *client.Client, val Value, opts Option, text string) (Value, error) {
+func (t Template) Call(ctx context.Context, cln solver.Client, val Value, opts Option, text string) (Value, error) {
 	tmpl, err := template.New("").Parse(text)
 	if err != nil {
 		return nil, err
@@ -57,13 +57,13 @@ func (t Template) Call(ctx context.Context, cln *client.Client, val Value, opts 
 
 type LocalArch struct{}
 
-func (la LocalArch) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (la LocalArch) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	return NewValue(ctx, local.Arch(ctx))
 }
 
 type LocalCwd struct{}
 
-func (lc LocalCwd) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (lc LocalCwd) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	cwd, err := local.Cwd(ctx)
 	if err != nil {
 		return nil, err
@@ -73,19 +73,19 @@ func (lc LocalCwd) Call(ctx context.Context, cln *client.Client, val Value, opts
 
 type LocalOS struct{}
 
-func (lo LocalOS) Call(ctx context.Context, cln *client.Client, val Value, opts Option) (Value, error) {
+func (lo LocalOS) Call(ctx context.Context, cln solver.Client, val Value, opts Option) (Value, error) {
 	return NewValue(ctx, local.Os(ctx))
 }
 
 type LocalEnv struct{}
 
-func (le LocalEnv) Call(ctx context.Context, cln *client.Client, val Value, opts Option, key string) (Value, error) {
+func (le LocalEnv) Call(ctx context.Context, cln solver.Client, val Value, opts Option, key string) (Value, error) {
 	return NewValue(ctx, local.Env(ctx, key))
 }
 
 type LocalRun struct{}
 
-func (lr LocalRun) Call(ctx context.Context, cln *client.Client, val Value, opts Option, args ...string) (Value, error) {
+func (lr LocalRun) Call(ctx context.Context, cln solver.Client, val Value, opts Option, args ...string) (Value, error) {
 	var (
 		localRunOpts = &LocalRunOption{}
 		shlex        = false
@@ -128,7 +128,7 @@ func (lr LocalRun) Call(ctx context.Context, cln *client.Client, val Value, opts
 
 type Manifest struct{}
 
-func (m Manifest) Call(ctx context.Context, cln *client.Client, val Value, opts Option, ref string) (Value, error) {
+func (m Manifest) Call(ctx context.Context, cln solver.Client, val Value, opts Option, ref string) (Value, error) {
 	named, err := reference.ParseNormalizedNamed(ref)
 	if err != nil {
 		return nil, errdefs.WithInvalidImageRef(err, Arg(ctx, 0), ref)

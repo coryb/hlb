@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/moby/buildkit/client"
 	"github.com/openllb/hlb"
 	"github.com/openllb/hlb/checker"
 	"github.com/openllb/hlb/codegen"
@@ -121,7 +120,7 @@ type VendorInfo struct {
 	Stderr  io.Writer
 }
 
-func Vendor(ctx context.Context, cln *client.Client, uri string, info VendorInfo) (err error) {
+func Vendor(ctx context.Context, cln solver.Client, uri string, info VendorInfo) (err error) {
 	if info.Stdin == nil {
 		info.Stdin = os.Stdin
 	}
@@ -184,7 +183,7 @@ func Vendor(ctx context.Context, cln *client.Client, uri string, info VendorInfo
 	}
 	defer p.Wait()
 
-	ctx = codegen.WithMultiWriter(ctx, p.MultiWriter())
+	ctx = solver.WithMultiWriter(ctx, p.MultiWriter())
 	return module.Vendor(ctx, cln, mod, info.Targets, info.Tidy)
 }
 
@@ -242,7 +241,7 @@ type TreeInfo struct {
 	Stderr io.Writer
 }
 
-func Tree(ctx context.Context, cln *client.Client, uri string, info TreeInfo) (err error) {
+func Tree(ctx context.Context, cln solver.Client, uri string, info TreeInfo) (err error) {
 	if info.Stdin == nil {
 		info.Stdin = os.Stdin
 	}
@@ -303,7 +302,7 @@ func Tree(ctx context.Context, cln *client.Client, uri string, info TreeInfo) (e
 	}
 	defer p.Wait()
 
-	ctx = codegen.WithMultiWriter(ctx, p.MultiWriter())
+	ctx = solver.WithMultiWriter(ctx, p.MultiWriter())
 	tree, err = module.NewTree(ctx, cln, mod, info.Long)
 	return err
 }

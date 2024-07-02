@@ -6,15 +6,15 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/moby/buildkit/client"
 	"github.com/openllb/hlb/parser/ast"
+	"github.com/openllb/hlb/solver"
 	"github.com/xlab/treeprint"
 )
 
 // NewTree resolves the import graph and returns a treeprint.Tree that can be
 // printed to display a visualization of the imports. Imports that transitively
 // import the same module will be duplicated in the tree.
-func NewTree(ctx context.Context, cln *client.Client, mod *ast.Module, long bool) (treeprint.Tree, error) {
+func NewTree(ctx context.Context, cln solver.Client, mod *ast.Module, long bool) (treeprint.Tree, error) {
 	resolver, err := NewResolver(cln)
 	if err != nil {
 		return nil, err
